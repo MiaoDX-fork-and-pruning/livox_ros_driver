@@ -44,7 +44,8 @@
 
 /* const varible -------------------------------------------------------------------------------- */
 /* user area */
-const uint32_t kPublishIntervalMs           = 50;          // unit:ms
+const uint32_t kPublishIntervalMs           = 20;          // unit:ms
+
 
 /* const parama */
 const uint32_t kMaxPointPerEthPacket        = 100;
@@ -107,7 +108,8 @@ typedef enum {
 
 typedef enum {
   kPointCloud2Msg = 0,
-  kLivoxCustomMsg
+  kLivoxCustomMsg,
+  kPointCloud2PCTimeMsg
 } LivoxMsgType;
 
 /* for global publisher use */
@@ -303,7 +305,7 @@ static uint32_t CalculatePacketQueueSize(uint32_t interval_ms, uint32_t device_t
 
 /* for pointcloud convert process */
 static uint32_t PublishPointcloud2(StoragePacketQueue* queue, uint32_t packet_num, \
-                                   uint8_t handle) {
+                                   uint8_t handle, bool use_pc_time=false) {
 
   uint64_t timestamp = 0;
   uint64_t last_timestamp = 0;
@@ -353,9 +355,19 @@ static uint32_t PublishPointcloud2(StoragePacketQueue* queue, uint32_t packet_nu
       break;
     }
 
+    auto t_now = ros::Time::now();
+    auto t_timestamp = ros::Time(timestamp/1e9); // to ros time stamp
     if (!cloud.width) {
-      cloud.header.stamp = ros::Time(timestamp/1000000000.0); // to ros time stamp
-      ROS_DEBUG("[%d]:%ld us", handle, timestamp);
+      if (use_pc_time) {
+        // FIXME, add by dongxumiao, can be bettter
+        cloud.header.stamp = t_now;
+      }
+      else{
+        //cloud.header.stamp = t_timestamp;
+        cloud.header.stamp = ros::Time(0);
+      }
+      // ROS_DEBUG("[%d]:%ld us", handle, timestamp);
+      ROS_DEBUG("[%d]:now: %lf timestamp: %lf, used: %lf", handle, t_now.toSec(), t_timestamp.toSec(), cloud.header.stamp.toSec());
     }
     cloud.width += storage_packet.point_num;
 
@@ -480,7 +492,13 @@ void GetLidarData(uint8_t handle, LivoxEthPacket *data, uint32_t data_num, void 
       //                                 packet_statistic->last_timestamp);
     }
   }
+
+  //FIXME, add by DongxuMiao
+  //ROS_DEBUG("sysnc time : %lu %lu %lu", packet_statistic->timebase, cur_timestamp, packet_statistic->last_timestamp);
+
   packet_statistic->last_timestamp = cur_timestamp;
+
+ 
 
   StoragePacketQueue *p_queue = &lidars[handle].packet_queue;
   if (nullptr == p_queue->storage_packet) {
@@ -506,11 +524,19 @@ void PollPointcloudData(int msg_type) {
     while (!QueueIsEmpty(p_queue)) {
       //ROS_DEBUG("%d %d %d %d\r\n", i, p_queue->rd_idx, p_queue->wr_idx, QueueUsedSize(p_queue));
       uint32_t used_size = QueueUsedSize(p_queue);
-      if (kPointCloud2Msg == msg_type) {
+      if (kPointCloud2Msg == msg_type ){
         if (used_size == PublishPointcloud2(p_queue, used_size, i)) {
           break;
         }
-      } else {
+      } 
+
+      if (kPointCloud2PCTimeMsg == msg_type ){
+        if (used_size == PublishPointcloud2(p_queue, used_size, i, true)) {
+          break;
+        }
+      } 
+
+      if (kLivoxCustomMsg == msg_type) {
         if (used_size == PublishCustomPointcloud(p_queue, QueueUsedSize(p_queue), i)) {
           break;
         }
@@ -667,9 +693,16 @@ void OnDeviceBroadcast(const BroadcastDeviceInfo *info) {
 
 
 int main(int argc, char **argv) {
+/*
   if(ros::console::set_logger_level(ROSCONSOLE_DEFAULT_NAME, ros::console::levels::Info)) {
     ros::console::notifyLoggerLevelsChanged();
   }
+*/
+  if(ros::console::set_logger_level(ROSCONSOLE_DEFAULT_NAME, ros::console::levels::Debug)) {
+    ros::console::notifyLoggerLevelsChanged();
+  }
+
+
 
   ROS_INFO("Livox-SDK ros demo");
 
@@ -708,7 +741,7 @@ int main(int argc, char **argv) {
 
   int msg_type;
   livox_node.getParam("livox_msg_type", msg_type);
-  if (kPointCloud2Msg == msg_type) {
+  if (kPointCloud2Msg == msg_type || kPointCloud2PCTimeMsg == msg_type) {
     cloud_pub = livox_node.advertise<sensor_msgs::PointCloud2>("livox/lidar", \
                                                        kMinEthPacketQueueSize);
     ROS_INFO("Publish PointCloud2");
