@@ -44,7 +44,7 @@
 
 /* const varible -------------------------------------------------------------------------------- */
 /* user area */
-const uint32_t kPublishIntervalMs           = 20;          // unit:ms
+const uint32_t kPublishIntervalMs           = 10;          // unit:ms
 
 
 /* const parama */
