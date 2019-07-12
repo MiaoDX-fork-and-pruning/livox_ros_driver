@@ -1,0 +1,2 @@
+export ROS_HOSTNAME=dm202
+export ROS_MASTER_URI=http://dm202:11311
