@@ -10,5 +10,5 @@
     -->
 
 	<node name="rviz" pkg="rviz" type="rviz" respawn="true"
-	      args="-d $(find livox_ros_driver)/config/display_lidar_points.rviz"/>
+	      args="-d $(find livox_ros_driver)/config/display_lidar_points_area.rviz"/>
 </launch>
