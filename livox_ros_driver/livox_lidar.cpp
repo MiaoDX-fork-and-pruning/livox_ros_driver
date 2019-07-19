@@ -375,7 +375,7 @@ static uint32_t PublishPointcloud2(StoragePacketQueue* queue, uint32_t packet_nu
     if (!cloud.width) {
       if (use_pc_time) {
         // FIXME, add by dongxumiao, can be bettter
-         cloud.header.stamp = t_now;
+        // cloud.header.stamp = t_now;
         cloud.header.stamp = ros::Time(storage_packet.time_rcv/1e9);
       }
       else{
