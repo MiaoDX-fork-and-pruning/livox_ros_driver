@@ -42,6 +42,15 @@
 #include <livox_ros_driver/CustomPoint.h>
 #include <livox_ros_driver/CustomMsg.h>
 
+// copy from DM code
+#include <sys/time.h>
+long long GetHostTimeMicroSec() {
+    timeval tv = {};
+    gettimeofday(&tv, nullptr);
+    return (long long)tv.tv_sec * 1000000 + (long long)tv.tv_usec;
+}
+
+
 /* const varible -------------------------------------------------------------------------------- */
 /* user area */
 const uint32_t kPublishIntervalMs           = 10;          // unit:ms
@@ -311,7 +320,8 @@ static uint32_t PublishPointcloud2(StoragePacketQueue* queue, uint32_t packet_nu
   uint64_t last_timestamp = 0;
   uint32_t published_packet = 0;
   uint32_t point_num = 0;
-  uint32_t kPointXYZISize = 16;
+//  uint32_t kPointXYZISize = 16;
+  uint32_t kPointXYZISize = 20;
   sensor_msgs::PointCloud2 cloud;
 
   // init ROS standard message header
@@ -320,7 +330,7 @@ static uint32_t PublishPointcloud2(StoragePacketQueue* queue, uint32_t packet_nu
   cloud.width  = 0;
 
   // init ROS standard fields
-  cloud.fields.resize(4);
+  cloud.fields.resize(5);
   cloud.fields[0].offset = 0;
   cloud.fields[0].name   = "x";
   cloud.fields[0].count  = 1;
@@ -337,6 +347,11 @@ static uint32_t PublishPointcloud2(StoragePacketQueue* queue, uint32_t packet_nu
   cloud.fields[3].name   = "intensity";
   cloud.fields[3].count  = 1;
   cloud.fields[3].datatype = sensor_msgs::PointField::FLOAT32;
+  cloud.fields[4].offset = 16;
+  cloud.fields[4].name   = "offset_time";
+  cloud.fields[4].count  = 1;
+  cloud.fields[4].datatype = sensor_msgs::PointField::UINT32;
+
 
   // add pointcloud
   cloud.data.resize(packet_num * kMaxPointPerEthPacket * kPointXYZISize);
@@ -360,13 +375,13 @@ static uint32_t PublishPointcloud2(StoragePacketQueue* queue, uint32_t packet_nu
     if (!cloud.width) {
       if (use_pc_time) {
         // FIXME, add by dongxumiao, can be bettter
-        cloud.header.stamp = t_now;
+         cloud.header.stamp = t_now;
+        cloud.header.stamp = ros::Time(storage_packet.time_rcv/1e9);
       }
       else{
-        //cloud.header.stamp = t_timestamp;
-        cloud.header.stamp = ros::Time(0);
+        cloud.header.stamp = t_timestamp;
+//        cloud.header.stamp = ros::Time(0);
       }
-      // ROS_DEBUG("[%d]:%ld us", handle, timestamp);
       ROS_DEBUG("[%d]:now: %lf timestamp: %lf, used: %lf", handle, t_now.toSec(), t_timestamp.toSec(), cloud.header.stamp.toSec());
     }
     cloud.width += storage_packet.point_num;
@@ -376,6 +391,7 @@ static uint32_t PublishPointcloud2(StoragePacketQueue* queue, uint32_t packet_nu
       *((float*)(point_base +  4)) = raw_points->y/1000.0f;
       *((float*)(point_base +  8)) = raw_points->z/1000.0f;
       *((float*)(point_base + 12)) = (float) raw_points->reflectivity;
+      *((uint32_t*)(point_base + 16)) = timestamp;
       ++raw_points;
       ++point_num;
       point_base += kPointXYZISize;
@@ -480,18 +496,30 @@ void GetLidarData(uint8_t handle, LivoxEthPacket *data, uint32_t data_num, void 
 
   LidarPacketStatistic *packet_statistic = &lidars[handle].statistic_info;
   uint64_t cur_timestamp = *((uint64_t *)(lidar_pack->timestamp));
-  if (lidar_pack->timestamp_type == kTimestampTypePps) {
-    if ((cur_timestamp < packet_statistic->last_timestamp) && \
-        (cur_timestamp < kPacketTimeGap)) { // sync point
 
-      auto cur_time = chrono::high_resolution_clock::now();
-      int64_t sync_time = cur_time.time_since_epoch().count();
 
-      packet_statistic->timebase = sync_time;
-      //ROS_DEBUG("sysnc time : %lu %lu %lu", packet_statistic->timebase, cur_timestamp, \
-      //                                 packet_statistic->last_timestamp);
-    }
-  }
+//  if (lidar_pack->timestamp_type == kTimestampTypePps) {
+//    if ((cur_timestamp < packet_statistic->last_timestamp) && \
+//        (cur_timestamp < kPacketTimeGap)) { // sync point
+//
+//      auto cur_time = chrono::high_resolution_clock::now();
+//      int64_t sync_time = cur_time.time_since_epoch().count();
+//
+//      packet_statistic->timebase = sync_time;
+//      //ROS_DEBUG("sysnc time : %lu %lu %lu", packet_statistic->timebase, cur_timestamp, \
+//      //                                 packet_statistic->last_timestamp);
+//    }
+//  }
+
+// USE of chrono time
+//  auto cur_time = chrono::high_resolution_clock::now();
+//  int64_t sync_time = cur_time.time_since_epoch().count();
+//  packet_statistic->timebase = sync_time;
+
+// USE DM host time
+  int64_t dm_time = GetHostTimeMicroSec() * 1000;
+  packet_statistic->timebase = dm_time;
+
 
   //FIXME, add by DongxuMiao
   //ROS_DEBUG("sysnc time : %lu %lu %lu", packet_statistic->timebase, cur_timestamp, packet_statistic->last_timestamp);
