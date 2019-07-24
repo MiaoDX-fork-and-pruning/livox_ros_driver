@@ -5,7 +5,6 @@
 * change `const uint32_t kPublishIntervalMs = 50; // unit:ms` to `10` for denser sampling/integration of motion
 
 * `roslaunch livox_ros_driver livox_lidar_pc_time.launch`, pc time as timestamp
-* `roslaunch livox_ros_driver livox_lidar_pc_time.launch`, pc time as timestamp
 * `roslaunch livox_ros_driver livox_lidar.launch`, if w/ PPS, timestamp should be accurate enough, if w/o, timestamp starts at device start (useless)
 
 * run with bd_list
@@ -16,6 +15,7 @@
 * visualization
     - `roslaunch livox_ros_driver livox_rviz_only.launch`
     - change `decay time` of `PointCloud2` to 3.0 or other values for longer time accumulation on vis
+    - to get (2D) points from points cloud, `rostopic echo /move_base_simple/goal`, and click `2D Nav Goal` to choose the points.
 
 * record bags
     - `rosbag record --all --split --duration 20`, change the params
