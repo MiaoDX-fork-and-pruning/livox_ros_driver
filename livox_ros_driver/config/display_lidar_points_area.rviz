@@ -6,9 +6,8 @@ Panels:
       Expanded:
         - /Global Options1
         - /Status1
-        - /Grid1
-        - /PointCloud1/Autocompute Value Bounds1
         - /PointCloud21
+        - /Grid2/Offset1
       Splitter Ratio: 0.50069499
     Tree Height: 747
   - Class: rviz/Selection
@@ -56,36 +55,6 @@ Visualization Manager:
     - Alpha: 1
       Autocompute Intensity Bounds: true
       Autocompute Value Bounds:
-        Max Value: 0.856000006
-        Min Value: -0.735000014
-        Value: true
-      Axis: Z
-      Channel Name: x
-      Class: rviz/PointCloud
-      Color: 255; 255; 255
-      Color Transformer: Intensity
-      Decay Time: 1
-      Enabled: false
-      Invert Rainbow: false
-      Max Color: 255; 255; 255
-      Max Intensity: -0.0879999995
-      Min Color: 0; 0; 0
-      Min Intensity: -1.95099998
-      Name: PointCloud
-      Position Transformer: XYZ
-      Queue Size: 1000
-      Selectable: true
-      Size (Pixels): 2
-      Size (m): 0.00499999989
-      Style: Flat Squares
-      Topic: /livox/lidar
-      Unreliable: true
-      Use Fixed Frame: true
-      Use rainbow: true
-      Value: false
-    - Alpha: 1
-      Autocompute Intensity Bounds: true
-      Autocompute Value Bounds:
         Max Value: 1.75199997
         Min Value: -1.63699996
         Value: true
@@ -93,12 +62,12 @@ Visualization Manager:
       Channel Name: intensity
       Class: rviz/PointCloud2
       Color: 255; 255; 255
-      Color Transformer: FlatColor
+      Color Transformer: Intensity
       Decay Time: 3
       Enabled: true
       Invert Rainbow: false
       Max Color: 255; 255; 255
-      Max Intensity: 164
+      Max Intensity: 152
       Min Color: 0; 0; 0
       Min Intensity: 0
       Name: PointCloud2
@@ -120,6 +89,54 @@ Visualization Manager:
       Radius: 0.100000001
       Reference Frame: <Fixed Frame>
       Value: true
+    - Alpha: 0.5
+      Cell Size: 10
+      Class: rviz/Grid
+      Color: 160; 160; 164
+      Enabled: false
+      Line Style:
+        Line Width: 0.0299999993
+        Value: Lines
+      Name: Grid
+      Normal Cell Count: 0
+      Offset:
+        X: 0
+        Y: 0
+        Z: 40
+      Plane: XZ
+      Plane Cell Count: 10
+      Reference Frame: <Fixed Frame>
+      Value: false
+    - Alpha: 1
+      Autocompute Intensity Bounds: true
+      Autocompute Value Bounds:
+        Max Value: 10
+        Min Value: -10
+        Value: true
+      Axis: Z
+      Channel Name: b
+      Class: rviz/PointCloud2
+      Color: 255; 255; 255
+      Color Transformer: RGBF32
+      Decay Time: 2
+      Enabled: false
+      Invert Rainbow: false
+      Max Color: 255; 255; 255
+      Max Intensity: 1
+      Min Color: 0; 0; 0
+      Min Intensity: 0.00784313772
+      Name: PointCloud2
+      Position Transformer: XYZ
+      Queue Size: 10
+      Selectable: true
+      Size (Pixels): 3
+      Size (m): 0.0299999993
+      Style: Flat Squares
+      Topic: /pc2_color
+      Unreliable: false
+      Use Fixed Frame: true
+      Use rainbow: true
+      Value: false
   Enabled: true
   Global Options:
     Background Color: 48; 48; 48
@@ -145,7 +162,7 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/Orbit
-      Distance: 86.7137833
+      Distance: 157.068176
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.0599999987
         Stereo Focal Distance: 1
@@ -160,10 +177,10 @@ Visualization Manager:
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.00999999978
-      Pitch: 0.369797349
+      Pitch: 0.944796741
       Target Frame: <Fixed Frame>
       Value: Orbit (rviz)
-      Yaw: 3.07060504
+      Yaw: 4.54060316
     Saved:
       - Class: rviz/Orbit
         Distance: 10
